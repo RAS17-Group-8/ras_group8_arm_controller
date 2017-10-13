@@ -77,6 +77,8 @@ private:
   double arm_j1_zero;
   double arm_j2_v;
 
+  int move_time;
+
 
 };
 

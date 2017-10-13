@@ -15,3 +15,13 @@ arm_angles:
  j0_zero: 88 
  j1_zero: 23
  j2_v: 96
+
+arm_base_position:
+ x: 0
+ y: 15 
+ z: 5
+
+arm_movement: 
+ move_time: 2
+
+

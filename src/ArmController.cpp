@@ -40,7 +40,6 @@ bool ArmController::readParameters()
       return false;
     ROS_INFO("P: arm_pump_topic_= %s", arm_pump_topic_.c_str());
 
-
     if (!node_handle_.getParam("arm_cartesian_topic", arm_cartesian_topic_))
       return false;
     ROS_INFO("P: arm_cartesian_topic_ = %s", arm_cartesian_topic_.c_str());
@@ -84,6 +83,22 @@ bool ArmController::readParameters()
     if (!node_handle_.getParam("arm_angles/j2_v", arm_j2_v))
       return false;
     ROS_INFO("P: arm_j2_v = %f", arm_j2_v);
+
+    if (!node_handle_.getParam("arm_base_position/x", base_position_global.x))
+      return false;
+    ROS_INFO("P: base_position_global.x = %f", base_position_global.x);
+
+    if (!node_handle_.getParam("arm_base_position/y", base_position_global.y))
+      return false;
+    ROS_INFO("P: base_position_global.y = %f", base_position_global.y);
+
+    if (!node_handle_.getParam("arm_base_position/z", base_position_global.z))
+      return false;
+    ROS_INFO("P: base_position_global.z= %f",base_position_global.z);
+
+    if (!node_handle_.getParam("arm_movement/move_time", move_time))
+      return false;
+    ROS_INFO("P: move_time= %i",move_time);
 
     return true;
 }
@@ -133,79 +148,7 @@ void ArmController::uarmDesiredPositionCallback(const geometry_msgs::Vector3 &ms
       pump_message.request.pump_status=true;
       arm_pump_client_.call(pump_message);
 
-      base_position_global.x=0;
-      base_position_global.y=20;
-      base_position_global.z=5;
       uarmMoveToCoordinates(base_position_global);
-
-
-    /*double desired_position_w_star;
-    double desired_position_z_star;
-
-    double desired_position_alpha_help;
-
-    double desired_joint_servo_0;
-    double desired_joint_servo_1;
-    double desired_joint_servo_2;
-
-    double desired_joint_space_beta;
-
-    desired_position_w_star=sqrt(pow(msg.x,2)+pow(msg.y,2))-(arm_b+arm_e);
-    desired_position_z_star=msg.z-(arm_a+arm_f);
-
-
-    desired_position_alpha_help=acos((pow(arm_c,2)+pow(desired_position_w_star,2)+pow(desired_position_z_star,2)-pow(arm_d,2))/(2*arm_c*sqrt(pow(desired_position_w_star,2)+pow(desired_position_z_star,2))));
-    desired_position_alpha=desired_position_alpha_help+atan2(desired_position_z_star,desired_position_w_star);
-    desired_position_beta=M_PI+acos((pow(arm_d,2)+pow(arm_c,2)-pow(desired_position_z_star,2)-pow(desired_position_w_star,2))/(2*arm_c*arm_d));
-    desired_position_gamma=atan2(msg.x,msg.y);
-    //ROS_INFO("Desired Position Calculation frame: Alpha: %f, Beta: %f, Gamma: %f",desired_position_alpha, desired_position_beta, desired_position_gamma);
-
-    ///////////////////////change this if we have the calibration of the arm /////////////
-
-    desired_joint_servo_0=desired_position_gamma*180/M_PI;
-    desired_joint_servo_1=desired_position_alpha*180/M_PI;
-    desired_joint_space_beta=desired_position_beta*180/M_PI;
-    desired_joint_servo_2=desired_joint_space_beta-270+desired_joint_servo_1;
-
-    ROS_INFO("Desired Postion Caltulation frame: Alpha:%f, Beta:%f, Postion Servo 2:%f, Gamma:%f ",desired_joint_servo_1,desired_joint_space_beta, desired_joint_servo_2,desired_joint_servo_0);
-
-
-    if ((desired_joint_space_message.request.j0 = desired_joint_servo_0+arm_j0_zero)>360)
-        desired_joint_space_message.request.j0=desired_joint_space_message.request.j0-360;
-
-    if ((desired_joint_space_message.request.j1 = desired_joint_servo_1+arm_j1_zero)>360)
-         desired_joint_space_message.request.j1=desired_joint_space_message.request.j1-360;
-
-    if ((desired_joint_space_message.request.j2 = arm_j2_v-desired_joint_servo_2)>360)
-        desired_joint_space_message.request.j2=desired_joint_space_message.request.j2-360;
-
-    desired_joint_space_message.request.j3 = 0;
-    desired_joint_space_message.request.move_mode=0;
-    desired_joint_space_message.request.interpolation_type=0;
-    //desired_joint_space_message.request.movement_duration={secs=2};
-
-    ////////////////////give the angle of the sevos in the calibrationframe in rad//////////////
-
-    ROS_INFO("Desired Position Servo0: %f, Servo1: %f, Servo2: %f",desired_joint_space_message.request.j0 ,desired_joint_space_message.request.j1 ,desired_joint_space_message.request.j2);
-
-    if (1==2) // insert the forbidden postions in joint coordinates
-    {
-        ROS_INFO("The joint position j0=%f, j1=%f, j2=%f is not allowed",desired_joint_servo_0,desired_joint_servo_1,desired_joint_servo_2);
-    }
-    else
-    {
-        arm_move_client_.call(desired_joint_space_message);
-
-        if(desired_joint_space_message.response.error)
-        {
-            ROS_INFO("Movement was not possible");
-        }
-        else
-        {
-           ROS_INFO("Actual Position Servo0: %f, Servo1: %f, Servo2: %f",desired_joint_space_message.response.j0 ,desired_joint_space_message.response.j1 ,desired_joint_space_message.response.j2);
-        }
-    }*/
-
   }
     /* Task to do:
      * - Implement a controller
@@ -236,8 +179,6 @@ void ArmController::uarmMoveToCoordinates(const geometry_msgs::Vector3 &msg)
     desired_position_gamma=atan2(msg.x,msg.y);
     //ROS_INFO("Desired Position Calculation frame: Alpha: %f, Beta: %f, Gamma: %f",desired_position_alpha, desired_position_beta, desired_position_gamma);
 
-    ///////////////////////change this if we have the calibration of the arm /////////////
-
     desired_joint_servo_0=desired_position_gamma*180/M_PI;
     desired_joint_servo_1=desired_position_alpha*180/M_PI;
     desired_joint_space_beta=desired_position_beta*180/M_PI;
@@ -245,7 +186,7 @@ void ArmController::uarmMoveToCoordinates(const geometry_msgs::Vector3 &msg)
 
     ROS_INFO("Desired Postion Caltulation frame: Alpha:%f, Beta:%f, Postion Servo 2:%f, Gamma:%f ",desired_joint_servo_1,desired_joint_space_beta, desired_joint_servo_2,desired_joint_servo_0);
 
-
+    // use the arm calibration
     if ((desired_joint_space_message.request.j0 = desired_joint_servo_0+arm_j0_zero)>360)
         desired_joint_space_message.request.j0=desired_joint_space_message.request.j0-360;
 
@@ -258,7 +199,7 @@ void ArmController::uarmMoveToCoordinates(const geometry_msgs::Vector3 &msg)
     desired_joint_space_message.request.j3 = 0;
     desired_joint_space_message.request.move_mode=0;
     desired_joint_space_message.request.interpolation_type=2;
-    desired_joint_space_message.request.movement_duration.sec=2;
+    desired_joint_space_message.request.movement_duration.sec=move_time;
 
     ////////////////////give the angle of the sevos in the calibrationframe in rad//////////////
 
