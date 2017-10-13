@@ -1,7 +1,6 @@
 arm_joint_topic: /uarm/move_to_joints
 arm_status_topic: /uarm/joint_state
 arm_cartesian_topic: /arm/cartesian
-arm_pump_topic: /uarm/pump
 
 arm_dim:
   a: 10.0

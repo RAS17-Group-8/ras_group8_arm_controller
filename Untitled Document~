@@ -1,0 +1,18 @@
+templat arm_controller    // name of the package
+Template   ArmController                   ////name of the class 
+
+CMake list ---> change it
++
+Change the master file to my computer and than to my fork
+
+git add . //add allfiles
+
+git commit -m "Inital commit"
+
+git push  
+
+cd ..
+rm -rf ras_group8_arm_controller
+
+fork to localgithub account
+git clone 
