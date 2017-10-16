@@ -167,6 +167,7 @@ void ArmController::uarmDesiredPositionDownCallback(const geometry_msgs::Vector3
 
       pump_message.request.pump_status=false;
       arm_pump_client_.call(pump_message);
+      uarmMoveToCoordinates(base_position_global);
   }
 }
 
