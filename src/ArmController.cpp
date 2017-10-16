@@ -10,8 +10,11 @@ ArmController::ArmController(ros::NodeHandle& node_handle)
     ros::requestShutdown();
   }
   
-  arm_cartesian_subscriber_ = node_handle_.subscribe(arm_cartesian_topic_, 1,
-                                      &ArmController::uarmDesiredPositionCallback, this);
+  arm_cartesian_up_subscriber_ = node_handle_.subscribe(arm_cartesian_up_topic_, 1,
+                                      &ArmController::uarmDesiredPositionUpCallback, this);
+
+  arm_cartesian_down_subscriber_ = node_handle_.subscribe(arm_cartesian_down_topic_, 1,
+                                      &ArmController::uarmDesiredPositionDownCallback, this);
 
   arm_status_subscriber_ = node_handle_.subscribe(arm_status_topic_, 1,
                                       &ArmController::uarmJointStateCallback, this);
@@ -40,13 +43,13 @@ bool ArmController::readParameters()
       return false;
     ROS_INFO("P: arm_pump_topic_= %s", arm_pump_topic_.c_str());
 
-    if (!node_handle_.getParam("arm_cartesian_topic", arm_cartesian_topic_))
+    if (!node_handle_.getParam("arm_cartesian_up_topic", arm_cartesian_up_topic_))
       return false;
-    ROS_INFO("P: arm_cartesian_topic_ = %s", arm_cartesian_topic_.c_str());
+    ROS_INFO("P: arm_cartesian_up_topic_ = %s", arm_cartesian_up_topic_.c_str());
 
-    if (!node_handle_.getParam("arm_cartesian_topic", arm_cartesian_topic_))
+    if (!node_handle_.getParam("arm_cartesian_down_topic", arm_cartesian_down_topic_))
       return false;
-    ROS_INFO("P: arm_cartesian_topic_ = %s", arm_cartesian_topic_.c_str());
+    ROS_INFO("P: arm_cartesian_down_topic_ = %s", arm_cartesian_down_topic_.c_str());
 
     if (!node_handle_.getParam("arm_dim/a", arm_a))
       return false;
@@ -135,7 +138,7 @@ void ArmController::uarmJointStateCallback(const sensor_msgs::JointState &msg)
     ROS_INFO("Actual Position Arm_Fram in cm: X: %f, Y: %f, Z: %f",actual_position_global.x,actual_position_global.y,actual_position_global.z);
 }
 
-void ArmController::uarmDesiredPositionCallback(const geometry_msgs::Vector3 &msg)
+void ArmController::uarmDesiredPositionUpCallback(const geometry_msgs::Vector3 &msg)
 { //transfer the message about the desired coordinates in the Armframe into a command to the servos (joint space)
   if(msg.x>10||msg.x<-10||msg.y>30||msg.y<9.5||msg.z>30||msg.z<-16.5)
   {
@@ -150,10 +153,21 @@ void ArmController::uarmDesiredPositionCallback(const geometry_msgs::Vector3 &ms
 
       uarmMoveToCoordinates(base_position_global);
   }
-    /* Task to do:
-     * - Implement a controller
-     * - Think about security
-     * */
+}
+
+void ArmController::uarmDesiredPositionDownCallback(const geometry_msgs::Vector3 &msg)
+{ //transfer the message about the desired coordinates in the Armframe into a command to the servos (joint space)
+  if(msg.x>10||msg.x<-10||msg.y>30||msg.y<9.5||msg.z>30||msg.z<-16.5)
+  {
+    ROS_INFO("This global postion X: %f, Y: %f, Z: %f is not allowed",msg.x,msg.y,msg.z);
+  }
+  else
+  {
+      uarmMoveToCoordinates(msg);
+
+      pump_message.request.pump_status=false;
+      arm_pump_client_.call(pump_message);
+  }
 }
 
 void ArmController::uarmMoveToCoordinates(const geometry_msgs::Vector3 &msg)

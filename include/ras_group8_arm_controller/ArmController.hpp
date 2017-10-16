@@ -24,7 +24,8 @@ public:
 private:
   bool readParameters();
   void uarmJointStateCallback(const sensor_msgs::JointState &msg);
-  void uarmDesiredPositionCallback(const geometry_msgs::Vector3 &msg);
+  void uarmDesiredPositionUpCallback(const geometry_msgs::Vector3 &msg);
+  void uarmDesiredPositionDownCallback(const geometry_msgs::Vector3 &msg);
   void uarmMoveToCoordinates(const geometry_msgs::Vector3 &msg);
 
 
@@ -32,7 +33,8 @@ private:
    */
   ros::NodeHandle& node_handle_;
 
-  ros::Subscriber arm_cartesian_subscriber_;
+  ros::Subscriber arm_cartesian_up_subscriber_;
+  ros::Subscriber arm_cartesian_down_subscriber_;
   ros::Subscriber arm_status_subscriber_;
 
   //ros::Publisher arm_move_publisher_;
@@ -45,7 +47,8 @@ private:
 
   std::string arm_joint_topic_;
   std::string arm_status_topic_;
-  std::string arm_cartesian_topic_;
+  std::string arm_cartesian_up_topic_;
+  std::string arm_cartesian_down_topic_;
   std::string arm_pump_topic_;
 
   // variables
