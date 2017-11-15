@@ -5,13 +5,12 @@
 #include <string.h>
 #include <math.h>
 #include <std_msgs/Float32.h>
-//#include <ras_uarm/Angles.h>
-//#include <ras_uarm/CoordsWithTime.h>
-//#include <ras_uarm/Coords.h>
 #include <uarm/MoveToJoints.h>
 #include <uarm/Pump.h>
 #include <sensor_msgs/JointState.h>
 #include <geometry_msgs/Vector3.h>
+#include <geometry_msgs/Point.h>
+#include "ras_group8_arm_controller/MoveArm.h"
 
 namespace ras_group8_arm_controller {
 
@@ -24,17 +23,19 @@ public:
 private:
   bool readParameters();
   void uarmJointStateCallback(const sensor_msgs::JointState &msg);
-  void uarmDesiredPositionUpCallback(const geometry_msgs::Vector3 &msg);
-  void uarmDesiredPositionDownCallback(const geometry_msgs::Vector3 &msg);
-  void uarmMoveToCoordinates(const geometry_msgs::Vector3 &msg);
+  bool uarmDesiredPositionUp(ras_group8_arm_controller::MoveArm::Request &req,
+                             ras_group8_arm_controller::MoveArm::Response &res);
+  bool uarmDesiredPositionDown(ras_group8_arm_controller::MoveArm::Request &req,
+                               ras_group8_arm_controller::MoveArm::Response &res);
+  bool uarmMoveToCoordinates(const geometry_msgs::Point &msg);
 
 
   /* ROS Objects
    */
   ros::NodeHandle& node_handle_;
 
-  ros::Subscriber arm_cartesian_up_subscriber_;
-  ros::Subscriber arm_cartesian_down_subscriber_;
+  ros::ServiceServer arm_cartesian_up_server_;
+  ros::ServiceServer arm_cartesian_down_server_;
   ros::Subscriber arm_status_subscriber_;
 
   //ros::Publisher arm_move_publisher_;
@@ -53,8 +54,8 @@ private:
 
   // variables
 
-  geometry_msgs::Vector3 actual_position_global;
-  geometry_msgs::Vector3 base_position_global;
+  geometry_msgs::Point actual_position_global;
+  geometry_msgs::Point base_position_global;
   uarm::MoveToJoints desired_joint_space_message;
   uarm::Pump pump_message;
 

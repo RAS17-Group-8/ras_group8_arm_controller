@@ -1,7 +1,7 @@
 arm_joint_topic: /uarm/move_to_joints
 arm_status_topic: /uarm/joint_state
-arm_cartesian_up_topic: /arm/cartesian_up
-arm_cartesian_down_topic: /arm/cartesian_down
+arm_cartesian_up_topic: /ras_group8_arm/cartesian_up
+arm_cartesian_down_topic: /ras_group8_arm/cartesian_down
 
 arm_pump_topic: /uarm/pump
 

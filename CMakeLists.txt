@@ -8,7 +8,24 @@ find_package(catkin REQUIRED
   std_msgs
   sensor_msgs
   geometry_msgs
+  message_generation
 )
+
+include_directories(
+  include
+  ${catkin_INCLUDE_DIRS}
+)
+
+add_service_files(
+  FILES
+  MoveArm.srv
+)
+
+generate_messages(
+ DEPENDENCIES
+  geometry_msgs
+)
+
 
 catkin_package(
   INCLUDE_DIRS
@@ -20,14 +37,14 @@ catkin_package(
     std_msgs
     sensor_msgs
     geometry_msgs
+    message_runtime
 
 # DEPENDS
 )
 
-include_directories(
-  include
-  ${catkin_INCLUDE_DIRS}
-)
+
+
+
 
 add_executable(${PROJECT_NAME}
   src/arm_controller_node.cpp

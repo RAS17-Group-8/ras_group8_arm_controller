@@ -1,0 +1,7 @@
+# Request
+geometry_msgs/Point position # Desired movement position global coordianates
+
+---
+# Response
+geometry_msgs/Point position # actual arm position after execution of the request
+

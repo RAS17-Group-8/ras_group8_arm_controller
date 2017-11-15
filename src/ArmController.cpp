@@ -10,11 +10,11 @@ ArmController::ArmController(ros::NodeHandle& node_handle)
     ros::requestShutdown();
   }
   
-  arm_cartesian_up_subscriber_ = node_handle_.subscribe(arm_cartesian_up_topic_, 1,
-                                      &ArmController::uarmDesiredPositionUpCallback, this);
+  arm_cartesian_up_server_ = node_handle_.advertiseService(arm_cartesian_up_topic_,
+                                      &ArmController::uarmDesiredPositionUp, this);
 
-  arm_cartesian_down_subscriber_ = node_handle_.subscribe(arm_cartesian_down_topic_, 1,
-                                      &ArmController::uarmDesiredPositionDownCallback, this);
+  arm_cartesian_down_server_ = node_handle_.advertiseService(arm_cartesian_down_topic_,
+                                      &ArmController::uarmDesiredPositionDown, this);
 
   arm_status_subscriber_ = node_handle_.subscribe(arm_status_topic_, 1,
                                       &ArmController::uarmJointStateCallback, this);
@@ -110,7 +110,7 @@ bool ArmController::readParameters()
 void ArmController::uarmJointStateCallback(const sensor_msgs::JointState &msg)
 { //transfer the message from the servos into a global position into the armframe 
 
-    ROS_INFO("Actual Position ArmPostion: alpha:%f, beta:%f, angle servo1:%f, gamma",actual_position_global.x,actual_position_global.y,actual_position_global.z);
+    //ROS_INFO("Actual Position ArmPostion: alpha:%f, beta:%f, angle servo1:%f, gamma",actual_position_global.x,actual_position_global.y,actual_position_global.z);
     double actual_position_w;
     double actual_position_alpha_d;
     double actual_position_beta_d;
@@ -121,7 +121,7 @@ void ArmController::uarmJointStateCallback(const sensor_msgs::JointState &msg)
     actual_position_beta_d=(double) (270-actual_position_alpha_d-msg.position[2]+arm_j2_v);
     actual_position_gamma_d=(double) msg.position[0]-arm_j0_zero;
 
-    ROS_INFO("Actual Position ArmPostion: alpha:%f, beta:%f, gamma:%f", actual_position_alpha_d,actual_position_beta_d,actual_position_gamma_d);
+    //ROS_INFO("Actual Position ArmPostion: alpha:%f, beta:%f, gamma:%f", actual_position_alpha_d,actual_position_beta_d,actual_position_gamma_d);
 
     // change the angle in rad
     actual_position_alpha=actual_position_alpha_d*M_PI/180;
@@ -135,43 +135,66 @@ void ArmController::uarmJointStateCallback(const sensor_msgs::JointState &msg)
 
     actual_position_global.z=arm_a+arm_c*sin(actual_position_alpha)+arm_d*sin(actual_position_alpha+actual_position_beta)+arm_f;
 
-    ROS_INFO("Actual Position Arm_Fram in cm: X: %f, Y: %f, Z: %f",actual_position_global.x,actual_position_global.y,actual_position_global.z);
+    //ROS_INFO("Actual Position Arm_Fram in cm: X: %f, Y: %f, Z: %f",actual_position_global.x,actual_position_global.y,actual_position_global.z);
 }
 
-void ArmController::uarmDesiredPositionUpCallback(const geometry_msgs::Vector3 &msg)
+
+bool ArmController::uarmDesiredPositionUp(ras_group8_arm_controller::MoveArm::Request &req,
+                                          ras_group8_arm_controller::MoveArm::Response &res)
 { //transfer the message about the desired coordinates in the Armframe into a command to the servos (joint space)
-  if(msg.x>10||msg.x<-10||msg.y>30||msg.y<9.5||msg.z>30||msg.z<-16.5)
+  if(req.position.x>10||req.position.x<-10||req.position.y>30||req.position.y<9.5||req.position.z>30||req.position.z<-16.5)
   {
-    ROS_INFO("This global postion X: %f, Y: %f, Z: %f is not allowed",msg.x,msg.y,msg.z);
+    ROS_ERROR("This global postion X: %f, Y: %f, Z: %f is not allowed",req.position.x,req.position.y,req.position.z);
+    return false;
   }
   else
   {
-      uarmMoveToCoordinates(msg);
+      if(!uarmMoveToCoordinates(req.position))
+      {
+          ROS_ERROR("Movement was not possible");
+          return false;
+      }
 
       pump_message.request.pump_status=true;
       arm_pump_client_.call(pump_message);
 
-      uarmMoveToCoordinates(base_position_global);
+      if(!uarmMoveToCoordinates(base_position_global))
+      {
+          ROS_ERROR("Movement was not possible");
+          return false;
+      }
   }
+  return true;
 }
 
-void ArmController::uarmDesiredPositionDownCallback(const geometry_msgs::Vector3 &msg)
+bool ArmController::uarmDesiredPositionDown(ras_group8_arm_controller::MoveArm::Request &req,
+                                            ras_group8_arm_controller::MoveArm::Response &res)
 { //transfer the message about the desired coordinates in the Armframe into a command to the servos (joint space)
-  if(msg.x>10||msg.x<-10||msg.y>30||msg.y<9.5||msg.z>30||msg.z<-16.5)
+  if(req.position.x>10||req.position.x<-10||req.position.y>30||req.position.y<9.5||req.position.z>30||req.position.z<-16.5)
   {
-    ROS_INFO("This global postion X: %f, Y: %f, Z: %f is not allowed",msg.x,msg.y,msg.z);
+    ROS_ERROR("This global postion X: %f, Y: %f, Z: %f is not allowed",req.position.x,req.position.y,req.position.z);
+    return false;
   }
   else
   {
-      uarmMoveToCoordinates(msg);
+      if(!uarmMoveToCoordinates(req.position))
+      {
+          ROS_ERROR("Movement was not possible");
+          return false;
+      }
 
       pump_message.request.pump_status=false;
       arm_pump_client_.call(pump_message);
-      uarmMoveToCoordinates(base_position_global);
+      if(!uarmMoveToCoordinates(base_position_global))
+      {
+          ROS_ERROR("Movement was not possible");
+          return false;
+      }
   }
+  return true;
 }
 
-void ArmController::uarmMoveToCoordinates(const geometry_msgs::Vector3 &msg)
+bool ArmController::uarmMoveToCoordinates(const geometry_msgs::Point &msg)
 {
     double desired_position_w_star;
     double desired_position_z_star;
@@ -199,7 +222,7 @@ void ArmController::uarmMoveToCoordinates(const geometry_msgs::Vector3 &msg)
     desired_joint_space_beta=desired_position_beta*180/M_PI;
     desired_joint_servo_2=desired_joint_space_beta-270+desired_joint_servo_1;
 
-    ROS_INFO("Desired Postion Caltulation frame: Alpha:%f, Beta:%f, Postion Servo 2:%f, Gamma:%f ",desired_joint_servo_1,desired_joint_space_beta, desired_joint_servo_2,desired_joint_servo_0);
+    //ROS_INFO("Desired Postion Caltulation frame: Alpha:%f, Beta:%f, Postion Servo 2:%f, Gamma:%f ",desired_joint_servo_1,desired_joint_space_beta, desired_joint_servo_2,desired_joint_servo_0);
 
     // use the arm calibration
     if ((desired_joint_space_message.request.j0 = desired_joint_servo_0+arm_j0_zero)>360)
@@ -231,11 +254,13 @@ void ArmController::uarmMoveToCoordinates(const geometry_msgs::Vector3 &msg)
         if(desired_joint_space_message.response.error)
         {
             ROS_INFO("Movement was not possible");
+            return false;
         }
-        else
-        {
-           ROS_INFO("Actual Position Servo0: %f, Servo1: %f, Servo2: %f",desired_joint_space_message.response.j0 ,desired_joint_space_message.response.j1 ,desired_joint_space_message.response.j2);
-        }
+//        else
+//        {
+//           ROS_INFO("Actual Position Servo0: %f, Servo1: %f, Servo2: %f",desired_joint_space_message.response.j0 ,desired_joint_space_message.response.j1 ,desired_joint_space_message.response.j2);
+//        }
+        return true;
     }
 }
 
