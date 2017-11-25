@@ -23,6 +23,7 @@ ArmController::ArmController(ros::NodeHandle& node_handle)
   arm_pump_client_= node_handle_.serviceClient<uarm::Pump>(arm_pump_topic_);
 
   ROS_INFO("Successfully launched node.");
+  uarmMoveToCoordinates(base_position_global);
 }
 
 ArmController::~ArmController()
@@ -135,7 +136,7 @@ void ArmController::uarmJointStateCallback(const sensor_msgs::JointState &msg)
 
     actual_position_global.z=arm_a+arm_c*sin(actual_position_alpha)+arm_d*sin(actual_position_alpha+actual_position_beta)+arm_f;
 
-    //ROS_INFO("Actual Position Arm_Fram in cm: X: %f, Y: %f, Z: %f",actual_position_global.x,actual_position_global.y,actual_position_global.z);
+     //ROS_ERROR("Actual Position Arm_Fram in cm: X: %f, Y: %f, Z: %f",actual_position_global.x,actual_position_global.y,actual_position_global.z);
 }
 
 
@@ -149,6 +150,7 @@ bool ArmController::uarmDesiredPositionUp(ras_group8_arm_controller::MoveArm::Re
   }
   else
   {
+      ROS_ERROR("This global postion X: %f, Y: %f, Z: %f ",req.position.x,req.position.y,req.position.z);
       if(!uarmMoveToCoordinates(req.position))
       {
           ROS_ERROR("Movement was not possible");
@@ -241,7 +243,7 @@ bool ArmController::uarmMoveToCoordinates(const geometry_msgs::Point &msg)
 
     ////////////////////give the angle of the sevos in the calibrationframe in rad//////////////
 
-    ROS_INFO("Desired Position Servo0: %f, Servo1: %f, Servo2: %f",desired_joint_space_message.request.j0 ,desired_joint_space_message.request.j1 ,desired_joint_space_message.request.j2);
+    //ROS_INFO("Desired Position Servo0: %f, Servo1: %f, Servo2: %f",desired_joint_space_message.request.j0 ,desired_joint_space_message.request.j1 ,desired_joint_space_message.request.j2);
 
     if (1==2) // insert the forbidden postions in joint coordinates
     {

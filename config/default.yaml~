@@ -1,7 +1,7 @@
 arm_joint_topic: /uarm/move_to_joints
 arm_status_topic: /uarm/joint_state
-arm_cartesian_up_topic: /arm/cartesian_up
-arm_cartesian_down_topic: /arm/cartesian_down
+arm_cartesian_up_topic: /ras_group8_arm/cartesian_up
+arm_cartesian_down_topic: /ras_group8_arm/cartesian_down
 
 arm_pump_topic: /uarm/pump
 
@@ -14,9 +14,9 @@ arm_dim:
   f: -6
 
 arm_angles: 
- j0_zero: 88 
- j1_zero: 23
- j2_v: 96
+ j0_zero: 55
+ j1_zero: -42
+ j2_v: 32  
 
 arm_base_position:
  x: 0
