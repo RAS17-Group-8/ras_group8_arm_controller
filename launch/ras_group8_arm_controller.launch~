@@ -1,8 +1,10 @@
 <launch>
 
   <!-- Launch RAS Group 8 Template Node -->
-  <node pkg="ras_group8_template" type="ras_group8_template" name="ras_group8_template" output="screen">
-    <rosparam command="load" file="$(find ras_group8_template)/config/default.yaml" />
+  <node pkg="ras_group8_arm_controller" type="ras_group8_arm_controller" name="ras_group8_arm_controller" output="screen">
+    <rosparam command="load" file="$(find ras_group8_arm_controller)/config/default.yaml" />
   </node>
+
+  <node pkg="uarm" type="kth_uarm_core.py" name="uarm" output="screen"/>
 
 </launch>

@@ -14,9 +14,9 @@ arm_dim:
   f: -6
 
 arm_angles: 
- j0_zero: 55
- j1_zero: -42
- j2_v: 32
+ j0_zero: 111
+ j1_zero: 130.6
+ j2_v: 68
 
 arm_base_position:
  x: 0

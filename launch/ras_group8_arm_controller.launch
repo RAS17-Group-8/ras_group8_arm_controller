@@ -5,4 +5,6 @@
     <rosparam command="load" file="$(find ras_group8_arm_controller)/config/default.yaml" />
   </node>
 
+  <node pkg="uarm" type="kth_uarm_core.py" name="uarm" output="screen"/>
+
 </launch>
