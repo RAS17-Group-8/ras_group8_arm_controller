@@ -143,7 +143,7 @@ void ArmController::uarmJointStateCallback(const sensor_msgs::JointState &msg)
 bool ArmController::uarmDesiredPositionUp(ras_group8_arm_controller::MoveArm::Request &req,
                                           ras_group8_arm_controller::MoveArm::Response &res)
 { //transfer the message about the desired coordinates in the Armframe into a command to the servos (joint space)
-  if(req.position.x>10||req.position.x<-10||req.position.y>30||req.position.y<9.5||req.position.z>30||req.position.z<-16.5)
+  if(req.position.x>10||req.position.x<-10||req.position.y>30||req.position.y<9.5||req.position.z>30||req.position.z<-18.5)
   {
     ROS_ERROR("This global postion X: %f, Y: %f, Z: %f is not allowed",req.position.x,req.position.y,req.position.z);
     return false;
